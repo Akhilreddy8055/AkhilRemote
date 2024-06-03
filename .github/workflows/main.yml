@@ -3,7 +3,7 @@ run-name: SFDX Lean with GitHub Actions 🚀
 on:
   push:
     branches:
-         uat
+         main
 
 jobs:
   Build_Deploy:
