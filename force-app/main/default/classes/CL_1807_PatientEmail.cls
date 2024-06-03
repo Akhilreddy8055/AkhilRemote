@@ -14,7 +14,7 @@ public class CL_1807_PatientEmail
                 If(ENP.Email__c != EOP.Email__c && EOP.Email__c != 'no@example.com' && EOP.Email__c != null)
                 {
                     ENP.Email__c.adderror('Email should be same as original mail '+ EOP.Email__c);
-                    system.debug('test1');
+                    system.debug('test123');
                 }
             }
         }
