@@ -3,6 +3,7 @@ public class CL_1807_PatientEmail
     Public static void ABC ( Set<Id> PID , List<Patient__c> PL)
     {
         List<Patient__c> OPL = [Select Id,Email__c from Patient__c where id in :PID ];
+//Test for OPs
         
     For(Patient__c ENP:PL)
     {
