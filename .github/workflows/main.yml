@@ -64,7 +64,7 @@ jobs:
 
       - name: Deploy Delta Package
         run: |
-          java -cp sfdxlean.jar com.cf.services.RunDeployment -m=${{ github.workspace }}/dist -h=${{ secrets.SF_URL }} -u=${{ secrets.SF_UAT_USERNAME }} -p=${{ secrets.SF_UAT_PASSWORD }} -t=${{ secrets.SF_TESTLEVEL_NOTESTRUN }} -v=${{ secrets.SF_NOCHECKONLY }}
+          java -cp sfdxlean.jar com.cf.services.RunDeployment -m=${{ github.workspace }}/dist -h=${{ secrets.SF_URL }} -u=${{ secrets.SF_UAT_USERNAME }} -a=${{ secrets.SF_UAT_ACCESS_TOKEN }} -t=${{ secrets.SF_TESTLEVEL_NOTESTRUN }} -v=${{ secrets.SF_NOCHECKONLY }}
 
       - name: Archive Deployment Artifacts
         uses: actions/upload-artifact@v2
