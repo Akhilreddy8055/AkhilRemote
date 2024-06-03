@@ -1,0 +1,73 @@
+name: OpsBridge(SFDX Lean) - Deploy
+run-name: SFDX Lean with GitHub Actions 🚀
+on:
+  push:
+    branches:
+         uat
+
+jobs:
+  Build_Deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up JDK 18
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '18'
+          architecture: 'x64'
+
+      - name: Install Salesforce CLI
+        run: |
+            wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
+            mkdir ~/sfdx
+            tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx --strip-components 1
+            echo "$HOME/sfdx/bin" >> $GITHUB_PATH
+            ~/sfdx/bin/sfdx version
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install SFDX Delta Package
+        run: |
+          wget https://cfsfdx.s3.amazonaws.com/sfdxlean.jar
+
+      - name: Checkout HEAD
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.workspace }}/head
+          fetch-depth: 5
+
+      - name: Checkout HEAD^
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.before }}
+          path: ${{ github.workspace }}/head~1
+
+      - name: Create Delta Package
+        run: |
+          java -cp sfdxlean.jar com.cf.services.PackageCreation -c=${{ github.workspace }}/head -s=${{ github.event.before }} -e=${{ github.sha }} -f=${{ github.workspace }}/head~1 -a=force-app -x=package
+
+      - name: Run SFDX scanner on code
+        run: |
+          cd ${{ github.workspace }}/dist/changed-metadata
+          sf scanner:run --format csv --target './**/*.cls' --category "Design,Best Practices,Performance" --outfile ${{ github.workspace }}/dist/'ScanResults.csv'  
+          cd ../..
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+            name: ${{ github.run_number }}
+            path: ${{ github.workspace }}/dist
+
+      - name: Deploy Delta Package
+        run: |
+          java -cp sfdxlean.jar com.cf.services.RunDeployment -m=${{ github.workspace }}/dist -h=${{ secrets.SF_URL }} -u=${{ secrets.SF_UAT_USERNAME }} -p=${{ secrets.SF_UAT_PASSWORD }} -t=${{ secrets.SF_TESTLEVEL_NOTESTRUN }} -v=${{ secrets.SF_NOCHECKONLY }}
+
+      - name: Archive Deployment Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.run_number }}
+          path: ${{ github.workspace }}/dist
